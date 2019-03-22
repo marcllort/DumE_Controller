@@ -20,17 +20,17 @@ public class Estudiant {
     public static SerialPort mySerial;
 
     //Període en ms amb el que es crida la funció readMode().
-    public static final int READ_PERIOD = 1000;
+    public static final int READ_PERIOD = 15;
 
     //Període en ms amb el que es crida la funció writeMode() quan l'Animator té activat Writing i es modifica l'angle
     //d'un motor. Serveix per a no cridar wirteMode() infinites vegades al modificar l'angle dels motors.
-    public static final long WRITE_PERIOD = 1000;
+    public static final long WRITE_PERIOD = 25;
 
     //Aquesta funció es crida cada cop que es modifica la posició dels motors en l'Animator i està activada
     //l'opció Writting.
     //Rep els dos angles dels motors com arguments.
     public static void writeMode(int angleMotor1, int angleMotor2){
-        System.out.println("Aquí va el codi que escriu en el port sèrie.\nEnviant angles " + angleMotor1 + " " + angleMotor2);
+        System.out.println("Enviant angles " + angleMotor1 + " " + angleMotor2);
 
         //byte[] writteArray = intToByte(angleMotor1,angleMotor2);
 
@@ -77,36 +77,39 @@ public class Estudiant {
         byte[] readAarr = new byte[length];
         int byteRead = mySerial.readBytes(readAarr,length);
 
-        if (byteRead != length){
-            System.out.println("No s'ha llegit correctament");
+        if (byteRead < 2){
+
+            return null;
+
         }
+        else {
+            int[] exemple = new int[2];
+            exemple[0] = readAarr[0];
+            exemple[1] = readAarr[1];
 
-        int [] exemple = new int [2];
-        exemple[0] = readAarr[0];
-        exemple[1] = readAarr[1];
+            if (exemple[0] < 0) {
+                exemple[0] = 127 + exemple[0];
+                exemple[0] = exemple[0] + 127;
+            }
+            if (exemple[1] < 0) {
+                exemple[1] = 127 + exemple[1];
+                exemple[1] = exemple[1] + 127;
+            }
+            Float value0, value1;
+            value0 = Float.valueOf(exemple[0]);
+            value1 = Float.valueOf(exemple[1]);
+            value0 = (value0 / 255) * 180;
+            value1 = (value1 / 255) * 180;
+            exemple[0] = value0.intValue();
+            exemple[1] = value1.intValue();
 
-        if(exemple[0]<0){
-            exemple[0]=127+exemple[0];
-            exemple[0]=exemple[0]+127;
+            //System.out.println("S'acaba d'executar una actualització dels motors de l'Animator amb els següents valors:");
+            //System.out.println("Motor1 = " + exemple[0]);
+            //System.out.println("Motor2 = " + exemple[1]);
+
+
+            return exemple;
         }
-        if(exemple[1]<0){
-            exemple[1]=127+exemple[1];
-            exemple[1]=exemple[1]+127;
-        }
-        Float value0, value1;
-        value0= Float.valueOf(exemple[0]);
-        value1= Float.valueOf(exemple[1]);
-        value0=(value0/255)*180;
-        value1=(value1/255)*180;
-        exemple[0]=value0.intValue();
-        exemple[1]=value1.intValue();
-
-        //System.out.println("S'acaba d'executar una actualització dels motors de l'Animator amb els següents valors:");
-        //System.out.println("Motor1 = " + exemple[0]);
-        //System.out.println("Motor2 = " + exemple[1]);
-
-
-        return exemple;
     }
 
     //Funció creada per convertir els dos integers a un array de bytes per poder-los enviar
